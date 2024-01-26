@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question and Response Saver</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 80%; margin: auto; max-width: 600px; }
+        label { display: block; margin-top: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; }
+        button { padding: 10px 20px; margin-top: 10px; }
+        #success-message { color: green; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Save Your Question and Response</h1>
+        <form id="questionForm" action="/submit" method="post">
+            <label for="question">Question:</label>
+            <input type="text" id="question" name="question" required>
+
+            <label for="response">Response:</label>
+            <textarea id="response" name="response" rows="4" required></textarea>
+
+            <label for="category">Category:</label>
+            <select id="category" name="category">
+                <option value="Leetcode">Leetcode</option>
+                <option value="Embedded">Embedded</option>
+                <option value="CPP">C++</option>
+                <option value="Python">Python</option>
+                <option value="SystemDesign">System Design</option>
+            </select>
+
+            <label for="subtags">Subtags (comma-separated):</label>
+            <input type="text" id="subtags" name="subtags">
+            <button type="submit">Save</button>
+        </form>
+
+        <div id="success-message"></div>
+        <button id="fetch-info">Fetch Current Information</button>
+        <div id="info-display">
+        <!-- Fetched information will be displayed here -->
+        </div>
+
+        <button id="generate-pdf">Generate PDF</button>
+    
+    </div>
+
+    <script>
+        document.getElementById('questionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData();
+            formData.append('question', document.getElementById('question').value);
+            formData.append('response', document.getElementById('response').value);
+            formData.append('category', document.getElementById('category').value);  // Capture the category
+            formData.append('subtags', document.getElementById('subtags').value);  // Capture the subtags
+
+            fetch('/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                document.getElementById('success-message').textContent = 'Question and response saved successfully!';
+                // Clear the form fields after submission
+                document.getElementById('question').value = '';
+                document.getElementById('response').value = '';
+                document.getElementById('category').value = '';  // Clear the category field
+                document.getElementById('subtags').value = '';  // Clear the subtags field
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+
+        document.getElementById('fetch-info').addEventListener('click', function() {
+        fetch('/get-info')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('info-display').innerHTML = data.info; // Assuming 'data.info' is how your information is sent back from Flask
+            });
+        });
+
+        document.getElementById('generate-pdf').addEventListener('click', function() {
+            window.location = '/generate-pdf'; // Redirect to the Flask route that generates the PDF
+        });
+
+    </script>
+</body>
+</html>
